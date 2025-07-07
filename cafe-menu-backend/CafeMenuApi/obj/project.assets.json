@@ -5463,11 +5463,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\soren\\Desktop\\New folder (2)\\PisheDoostamMenu\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\CafeMenuApi.csproj",
+      "projectUniqueName": "C:\\Users\\soren\\source\\repos\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\CafeMenuApi.csproj",
       "projectName": "CafeMenuApi",
-      "projectPath": "C:\\Users\\soren\\Desktop\\New folder (2)\\PisheDoostamMenu\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\CafeMenuApi.csproj",
+      "projectPath": "C:\\Users\\soren\\source\\repos\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\CafeMenuApi.csproj",
       "packagesPath": "C:\\Users\\soren\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\soren\\Desktop\\New folder (2)\\PisheDoostamMenu\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\obj\\",
+      "outputPath": "C:\\Users\\soren\\source\\repos\\PisheDoostamMenu\\cafe-menu-backend\\CafeMenuApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
