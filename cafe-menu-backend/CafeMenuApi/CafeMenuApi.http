@@ -1,0 +1,6 @@
+@CafeMenuApi_HostAddress = http://localhost:5268
+
+GET {{CafeMenuApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

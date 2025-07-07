@@ -1,0 +1,54 @@
+### Test Cafe Menu API Endpoints
+
+@baseUrl = http://localhost:5000/api
+
+### Get all categories
+GET {{baseUrl}}/categories
+
+### Get specific category
+GET {{baseUrl}}/categories/1
+
+### Get all menu items
+GET {{baseUrl}}/menuitems
+
+### Get menu items by category
+GET {{baseUrl}}/menuitems/category/1
+
+### Get specific menu item
+GET {{baseUrl}}/menuitems/1
+
+### Admin login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Create new category
+POST {{baseUrl}}/categories
+Content-Type: application/json
+
+{
+  "name": "نوشیدنی گرم جدید",
+  "icon": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCI+PGNpcmNsZSBjeD0iNTAiIGN5PSI1MCIgcj0iNDAiIGZpbGw9InJlZCIvPjwvc3ZnPg==",
+  "description": "دسته‌بندی جدید برای تست"
+}
+
+### Create new menu item
+POST {{baseUrl}}/menuitems
+Content-Type: application/json
+
+{
+  "name": "قهوه تست",
+  "price": 30000,
+  "image": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iYnJvd24iLz48L3N2Zz4=",
+  "description": "قهوه تست برای آزمایش API",
+  "categoryId": 1,
+  "photos": [
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iYnJvd24iLz48L3N2Zz4=",
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iZGFya2Jyb3duIi8+PC9zdmc+",
+    "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0iY2hvY29sYXRlIi8+PC9zdmc+"
+  ]
+} 

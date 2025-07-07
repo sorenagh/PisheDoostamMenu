@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "cafe-menu-backend", "cafe-menu-backend", "{4564C7FE-DAE5-53E7-F8D7-EA58A0033202}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CafeMenuApi", "cafe-menu-backend\CafeMenuApi\CafeMenuApi.csproj", "{F65BD75C-1DA6-18D4-3035-539145500F43}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F65BD75C-1DA6-18D4-3035-539145500F43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F65BD75C-1DA6-18D4-3035-539145500F43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F65BD75C-1DA6-18D4-3035-539145500F43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F65BD75C-1DA6-18D4-3035-539145500F43}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{F65BD75C-1DA6-18D4-3035-539145500F43} = {4564C7FE-DAE5-53E7-F8D7-EA58A0033202}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3E9A12B0-8F20-4883-8AFE-32057545966B}
+	EndGlobalSection
+EndGlobal
