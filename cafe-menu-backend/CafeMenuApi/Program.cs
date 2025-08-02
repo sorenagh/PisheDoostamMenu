@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CafeMenuApi.Data;
 using System.Text.Json;
+using System.IO.Compression;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,17 +11,17 @@ Console.WriteLine($"Environment: {builder.Environment.EnvironmentName}");
 Console.WriteLine($"Content Root: {builder.Environment.ContentRootPath}");
 Console.WriteLine($"Web Root: {builder.Environment.WebRootPath}");
 
-// Configure detailed logging for production troubleshooting
+// Configure logging based on environment
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
 builder.Logging.AddDebug();
 builder.Logging.AddEventSourceLogger();
 
-// Set minimum log level based on environment
+// Set minimum log level based on environment - OPTIMIZED for production
 if (builder.Environment.IsProduction())
 {
-    builder.Logging.SetMinimumLevel(LogLevel.Trace);
-    Console.WriteLine("Production environment - enabling TRACE level logging");
+    builder.Logging.SetMinimumLevel(LogLevel.Warning); // Changed from Trace to Warning
+    Console.WriteLine("Production environment - enabling WARNING level logging for better performance");
 }
 else
 {
@@ -41,6 +42,17 @@ try
     
     builder.Services.AddSwaggerGen();
     Console.WriteLine("✓ Swagger added");
+
+    // Add Response Compression for better performance
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+    });
+    Console.WriteLine("✓ Response compression added");
+
+    // Add Response Caching for better performance
+    builder.Services.AddResponseCaching();
+    Console.WriteLine("✓ Response caching added");
 
     // Get connection string and log it (without password)
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -163,6 +175,14 @@ try
 
     // Configure the HTTP request pipeline
     Console.WriteLine("Configuring HTTP pipeline...");
+    
+    // Enable Response Compression (add early in pipeline)
+    app.UseResponseCompression();
+    Console.WriteLine("✓ Response compression enabled");
+    
+    // Enable Response Caching (add early in pipeline)
+    app.UseResponseCaching();
+    Console.WriteLine("✓ Response caching enabled");
     
     if (app.Environment.IsDevelopment())
     {

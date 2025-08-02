@@ -19,10 +19,12 @@ namespace CafeMenuApi.Controllers
 
         // GET: api/Categories
         [HttpGet]
+        [ResponseCache(Duration = 600)] // Cache for 10 minutes
         public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
         {
             var categories = await _context.Categories
                 .Include(c => c.MenuItems)
+                .AsNoTracking() // Optimize for read-only queries
                 .Select(c => new CategoryDto
                 {
                     Id = c.Id,
@@ -38,10 +40,12 @@ namespace CafeMenuApi.Controllers
 
         // GET: api/Categories/5
         [HttpGet("{id}")]
+        [ResponseCache(Duration = 600)] // Cache for 10 minutes
         public async Task<ActionResult<CategoryDto>> GetCategory(int id)
         {
             var category = await _context.Categories
                 .Include(c => c.MenuItems)
+                .AsNoTracking() // Optimize for read-only queries
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (category == null)

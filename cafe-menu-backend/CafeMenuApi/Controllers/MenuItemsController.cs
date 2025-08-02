@@ -21,13 +21,17 @@ namespace CafeMenuApi.Controllers
 
         // GET: api/MenuItems
         [HttpGet]
+        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItems(int? categoryId = null)
         {
             try
             {
                 _logger.LogInformation("Getting menu items, categoryId: {CategoryId}", categoryId);
                 
-                var query = _context.MenuItems.Include(m => m.Category).AsQueryable();
+                var query = _context.MenuItems
+                    .Include(m => m.Category)
+                    .AsNoTracking() // Optimize for read-only queries
+                    .AsQueryable();
 
                 if (categoryId.HasValue)
                 {
@@ -60,10 +64,12 @@ namespace CafeMenuApi.Controllers
 
         // GET: api/MenuItems/5
         [HttpGet("{id}")]
+        [ResponseCache(Duration = 600)] // Cache for 10 minutes
         public async Task<ActionResult<MenuItemDto>> GetMenuItem(int id)
         {
             var menuItem = await _context.MenuItems
                 .Include(m => m.Category)
+                .AsNoTracking() // Optimize for read-only queries
                 .FirstOrDefaultAsync(m => m.Id == id);
 
             if (menuItem == null)
@@ -88,10 +94,12 @@ namespace CafeMenuApi.Controllers
 
         // GET: api/MenuItems/category/5
         [HttpGet("category/{categoryId}")]
+        [ResponseCache(Duration = 300)] // Cache for 5 minutes
         public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItemsByCategory(int categoryId)
         {
             var menuItems = await _context.MenuItems
                 .Include(m => m.Category)
+                .AsNoTracking() // Optimize for read-only queries
                 .Where(m => m.CategoryId == categoryId)
                 .Select(m => new MenuItemDto
                 {

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CafeMenuApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8259e89decb07e7ba7df13ed7dfd8db3bb46383c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08e5434d5faf7a05b2271795757cfbade6185d2d")]
 [assembly: System.Reflection.AssemblyProductAttribute("CafeMenuApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CafeMenuApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
