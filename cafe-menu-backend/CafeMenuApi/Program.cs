@@ -66,25 +66,30 @@ try
         Console.WriteLine($"✓ Connection string found: {safeConnectionString}");
     }
 
-    // Add Entity Framework with SQL Server
+    // Add Entity Framework with SQL Server and resiliency
     builder.Services.AddDbContext<CafeMenuContext>(options =>
-        options.UseSqlServer(connectionString));
+        options.UseSqlServer(
+            connectionString,
+            sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorNumbersToAdd: null);
+                sqlOptions.CommandTimeout(30);
+            }));
     Console.WriteLine("✓ Entity Framework configured");
 
-    // Add CORS with specific origins
+    // Add CORS
     builder.Services.AddCors(options =>
     {
         options.AddPolicy("AllowVueApp", policy =>
         {
-            policy.WithOrigins(
-                    "https://menu.pishedoostam.ir",
-                    "http://localhost:8080",
-                    "http://localhost:3000",
-                    "https://localhost:8080"
-                  )
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
+            policy
+                .SetIsOriginAllowed(_ => true) // allow any origin dynamically
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+            // Note: Avoid AllowCredentials with AllowAnyOrigin; if credentials needed, use specific origins
         });
     });
     Console.WriteLine("✓ CORS configured");
