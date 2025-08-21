@@ -4,6 +4,7 @@ using CafeMenuApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeMenuApi.Migrations
 {
     [DbContext(typeof(CafeMenuContext))]
-    partial class CafeMenuContextModelSnapshot : ModelSnapshot
+    [Migration("20250821130914_ConvertAdminToUserWithRoles")]
+    partial class ConvertAdminToUserWithRoles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -322,9 +325,9 @@ namespace CafeMenuApi.Migrations
                         {
                             Id = 1,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Password = "SuperAdmin@2025!",
+                            Password = "admin123",
                             Role = 1,
-                            Username = "superadmin"
+                            Username = "sysadmin"
                         },
                         new
                         {

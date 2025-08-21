@@ -22,20 +22,26 @@ namespace CafeMenuApi.Controllers
         // GET: api/MenuItems
         [HttpGet]
         [ResponseCache(Duration = 300)] // Cache for 5 minutes
-        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItems(int? categoryId = null)
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItems(int? categoryId = null, int? placeId = null)
         {
             try
             {
-                _logger.LogInformation("Getting menu items, categoryId: {CategoryId}", categoryId);
+                _logger.LogInformation("Getting menu items, categoryId: {CategoryId}, placeId: {PlaceId}", categoryId, placeId);
                 
                 var query = _context.MenuItems
                     .Include(m => m.Category)
+                    .Include(m => m.Place)
                     .AsNoTracking() // Optimize for read-only queries
                     .AsQueryable();
 
                 if (categoryId.HasValue)
                 {
                     query = query.Where(m => m.CategoryId == categoryId.Value);
+                }
+
+                if (placeId.HasValue)
+                {
+                    query = query.Where(m => m.PlaceId == placeId.Value);
                 }
 
                 var menuItems = await query
@@ -48,6 +54,21 @@ namespace CafeMenuApi.Controllers
                         Description = m.Description,
                         CategoryId = m.CategoryId,
                         CategoryName = m.Category.Name,
+                        PlaceId = m.PlaceId,
+                        Place = new PlaceDto
+                        {
+                            Id = m.Place.Id,
+                            Name = m.Place.Name,
+                            Description = m.Place.Description,
+                            Address = m.Place.Address,
+                            Phone = m.Place.Phone,
+                            Email = m.Place.Email,
+                            Logo = m.Place.Logo,
+                            CoverImage = m.Place.CoverImage,
+                            IsActive = m.Place.IsActive,
+                            CreatedAt = m.Place.CreatedAt,
+                            UpdatedAt = m.Place.UpdatedAt
+                        },
                         Photos = m.PhotosList
                     })
                     .ToListAsync();
@@ -57,7 +78,7 @@ namespace CafeMenuApi.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while getting menu items with categoryId: {CategoryId}", categoryId);
+                _logger.LogError(ex, "Error occurred while getting menu items with categoryId: {CategoryId}, placeId: {PlaceId}", categoryId, placeId);
                 return StatusCode(500, new { error = "An error occurred while retrieving menu items", details = ex.Message });
             }
         }
@@ -65,12 +86,13 @@ namespace CafeMenuApi.Controllers
         // GET: api/MenuItems/5
         [HttpGet("{id}")]
         [ResponseCache(Duration = 600)] // Cache for 10 minutes
-        public async Task<ActionResult<MenuItemDto>> GetMenuItem(int id)
+        public async Task<ActionResult<MenuItemDto>> GetMenuItem(int id, [FromQuery] int? placeId = null)
         {
             var menuItem = await _context.MenuItems
                 .Include(m => m.Category)
+                .Include(m => m.Place)
                 .AsNoTracking() // Optimize for read-only queries
-                .FirstOrDefaultAsync(m => m.Id == id);
+                .FirstOrDefaultAsync(m => m.Id == id && (!placeId.HasValue || m.PlaceId == placeId.Value));
 
             if (menuItem == null)
             {
@@ -86,6 +108,21 @@ namespace CafeMenuApi.Controllers
                 Description = menuItem.Description,
                 CategoryId = menuItem.CategoryId,
                 CategoryName = menuItem.Category.Name,
+                PlaceId = menuItem.PlaceId,
+                Place = new PlaceDto
+                {
+                    Id = menuItem.Place.Id,
+                    Name = menuItem.Place.Name,
+                    Description = menuItem.Place.Description,
+                    Address = menuItem.Place.Address,
+                    Phone = menuItem.Place.Phone,
+                    Email = menuItem.Place.Email,
+                    Logo = menuItem.Place.Logo,
+                    CoverImage = menuItem.Place.CoverImage,
+                    IsActive = menuItem.Place.IsActive,
+                    CreatedAt = menuItem.Place.CreatedAt,
+                    UpdatedAt = menuItem.Place.UpdatedAt
+                },
                 Photos = menuItem.PhotosList
             };
 
@@ -95,12 +132,20 @@ namespace CafeMenuApi.Controllers
         // GET: api/MenuItems/category/5
         [HttpGet("category/{categoryId}")]
         [ResponseCache(Duration = 300)] // Cache for 5 minutes
-        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItemsByCategory(int categoryId)
+        public async Task<ActionResult<IEnumerable<MenuItemDto>>> GetMenuItemsByCategory(int categoryId, [FromQuery] int? placeId = null)
         {
-            var menuItems = await _context.MenuItems
+            var query = _context.MenuItems
                 .Include(m => m.Category)
+                .Include(m => m.Place)
                 .AsNoTracking() // Optimize for read-only queries
-                .Where(m => m.CategoryId == categoryId)
+                .Where(m => m.CategoryId == categoryId);
+
+            if (placeId.HasValue)
+            {
+                query = query.Where(m => m.PlaceId == placeId.Value);
+            }
+
+            var menuItems = await query
                 .Select(m => new MenuItemDto
                 {
                     Id = m.Id,
@@ -110,6 +155,21 @@ namespace CafeMenuApi.Controllers
                     Description = m.Description,
                     CategoryId = m.CategoryId,
                     CategoryName = m.Category.Name,
+                    PlaceId = m.PlaceId,
+                    Place = new PlaceDto
+                    {
+                        Id = m.Place.Id,
+                        Name = m.Place.Name,
+                        Description = m.Place.Description,
+                        Address = m.Place.Address,
+                        Phone = m.Place.Phone,
+                        Email = m.Place.Email,
+                        Logo = m.Place.Logo,
+                        CoverImage = m.Place.CoverImage,
+                        IsActive = m.Place.IsActive,
+                        CreatedAt = m.Place.CreatedAt,
+                        UpdatedAt = m.Place.UpdatedAt
+                    },
                     Photos = m.PhotosList
                 })
                 .ToListAsync();
@@ -128,6 +188,13 @@ namespace CafeMenuApi.Controllers
                 return BadRequest("Category not found");
             }
 
+            // Verify place exists
+            var placeExists = await _context.Places.AnyAsync(p => p.Id == createDto.PlaceId);
+            if (!placeExists)
+            {
+                return BadRequest("Place not found");
+            }
+
             var menuItem = new MenuItem
             {
                 Name = createDto.Name,
@@ -135,15 +202,19 @@ namespace CafeMenuApi.Controllers
                 Image = createDto.Image,
                 Description = createDto.Description,
                 CategoryId = createDto.CategoryId,
+                PlaceId = createDto.PlaceId,
                 PhotosList = createDto.Photos
             };
 
             _context.MenuItems.Add(menuItem);
             await _context.SaveChangesAsync();
 
-            // Load the category for the response
+            // Load the category and place for the response
             await _context.Entry(menuItem)
                 .Reference(m => m.Category)
+                .LoadAsync();
+            await _context.Entry(menuItem)
+                .Reference(m => m.Place)
                 .LoadAsync();
 
             var menuItemDto = new MenuItemDto
@@ -155,6 +226,21 @@ namespace CafeMenuApi.Controllers
                 Description = menuItem.Description,
                 CategoryId = menuItem.CategoryId,
                 CategoryName = menuItem.Category.Name,
+                PlaceId = menuItem.PlaceId,
+                Place = new PlaceDto
+                {
+                    Id = menuItem.Place.Id,
+                    Name = menuItem.Place.Name,
+                    Description = menuItem.Place.Description,
+                    Address = menuItem.Place.Address,
+                    Phone = menuItem.Place.Phone,
+                    Email = menuItem.Place.Email,
+                    Logo = menuItem.Place.Logo,
+                    CoverImage = menuItem.Place.CoverImage,
+                    IsActive = menuItem.Place.IsActive,
+                    CreatedAt = menuItem.Place.CreatedAt,
+                    UpdatedAt = menuItem.Place.UpdatedAt
+                },
                 Photos = menuItem.PhotosList
             };
 
@@ -185,11 +271,20 @@ namespace CafeMenuApi.Controllers
                     return BadRequest(new { error = "Category not found", categoryId = updateDto.CategoryId });
                 }
 
+                // Verify place exists
+                var placeExists = await _context.Places.AnyAsync(p => p.Id == updateDto.PlaceId);
+                if (!placeExists)
+                {
+                    _logger.LogWarning("Place with ID {PlaceId} not found", updateDto.PlaceId);
+                    return BadRequest(new { error = "Place not found", placeId = updateDto.PlaceId });
+                }
+
                 menuItem.Name = updateDto.Name;
                 menuItem.Price = updateDto.Price;
                 menuItem.Image = updateDto.Image;
                 menuItem.Description = updateDto.Description;
                 menuItem.CategoryId = updateDto.CategoryId;
+                menuItem.PlaceId = updateDto.PlaceId;
                 menuItem.PhotosList = updateDto.Photos;
 
                 await _context.SaveChangesAsync();

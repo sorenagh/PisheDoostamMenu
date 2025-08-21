@@ -21,11 +21,13 @@ namespace CafeMenuApi.Models
         [StringLength(1000)]
         public string Description { get; set; } = string.Empty;
         
-        // Foreign key
+        // Foreign keys
         public int CategoryId { get; set; }
+        public int PlaceId { get; set; }
         
-        // Navigation property
+        // Navigation properties
         public virtual Category Category { get; set; } = null!;
+        public virtual Place Place { get; set; } = null!;
         
         // Photos stored as JSON or comma-separated string
         public string Photos { get; set; } = string.Empty;

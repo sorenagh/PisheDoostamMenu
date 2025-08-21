@@ -7,6 +7,8 @@ namespace CafeMenuApi.DTOs
         public string Icon { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int ItemCount { get; set; }
+        public int PlaceId { get; set; }
+        public PlaceDto? Place { get; set; }
     }
     
     public class CreateCategoryDto
@@ -14,6 +16,7 @@ namespace CafeMenuApi.DTOs
         public string Name { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public int PlaceId { get; set; }
     }
     
     public class UpdateCategoryDto
@@ -21,5 +24,6 @@ namespace CafeMenuApi.DTOs
         public string Name { get; set; } = string.Empty;
         public string Icon { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public int PlaceId { get; set; }
     }
 } 

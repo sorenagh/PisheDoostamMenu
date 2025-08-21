@@ -18,7 +18,10 @@ namespace CafeMenuApi.DTOs
     {
         public int Id { get; set; }
         public string Username { get; set; } = string.Empty;
+        public string Role { get; set; } = string.Empty; // "SystemAdmin" or "CafeAdmin"
         public DateTime CreatedAt { get; set; }
         public DateTime? LastLoginAt { get; set; }
+        public int? PlaceId { get; set; }
+        public PlaceDto? Place { get; set; }
     }
 } 

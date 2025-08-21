@@ -27,7 +27,7 @@ namespace CafeMenuApi.Controllers
         }
 
         [HttpPost("reset-database")]
-        public async Task<IActionResult> ResetDatabase()
+        public async Task<IActionResult> ResetDatabase([FromQuery] int? placeId = null)
         {
             try
             {
@@ -38,16 +38,21 @@ namespace CafeMenuApi.Controllers
                     uploadedFiles = 0
                 };
 
-                // Delete all menu items
-                var menuItems = await _context.MenuItems.ToListAsync();
+                // Delete menu items for the specified place (or all if not specified)
+                var menuItems = await _context.MenuItems
+                    .Where(m => !placeId.HasValue || m.PlaceId == placeId.Value)
+                    .ToListAsync();
                 if (menuItems.Any())
                 {
                     _context.MenuItems.RemoveRange(menuItems);
                     deletedCounts = deletedCounts with { menuItems = menuItems.Count };
                 }
 
-                // Delete all categories except "همه محصولات" (ID = 0)
-                var categories = await _context.Categories.Where(c => c.Id != 0).ToListAsync();
+                // Delete categories for the specified place (or all if not specified), except ID 0
+                var categories = await _context.Categories
+                    .Where(c => c.Id != 0)
+                    .Where(c => !placeId.HasValue || c.PlaceId == placeId.Value)
+                    .ToListAsync();
                 if (categories.Any())
                 {
                     _context.Categories.RemoveRange(categories);
@@ -57,7 +62,7 @@ namespace CafeMenuApi.Controllers
                 // Save database changes
                 await _context.SaveChangesAsync();
 
-                // Clean up uploaded files
+                // Clean up uploaded files (not scoped by place as files are not linked)
                 var uploadedFiles = 0;
                 if (Directory.Exists(_uploadsPath))
                 {
@@ -83,7 +88,9 @@ namespace CafeMenuApi.Controllers
                     success = true,
                     message = "Database reset completed successfully",
                     deleted = deletedCounts,
-                    note = "Admin login preserved, all other data cleared"
+                    note = "System/User accounts preserved, other data cleared",
+                    placeScoped = placeId.HasValue,
+                    placeId
                 });
             }
             catch (Exception ex)
@@ -98,13 +105,24 @@ namespace CafeMenuApi.Controllers
         }
 
         [HttpGet("database-status")]
-        public async Task<IActionResult> GetDatabaseStatus()
+        public async Task<IActionResult> GetDatabaseStatus([FromQuery] int? placeId = null)
         {
             try
             {
-                var menuItemsCount = await _context.MenuItems.CountAsync();
-                var categoriesCount = await _context.Categories.Where(c => c.Id != 0).CountAsync();
-                var adminUsers = await _context.Admins.Where(u => u.Username == "admin").CountAsync();
+                var menuItemsCount = await _context.MenuItems
+                    .Where(m => !placeId.HasValue || m.PlaceId == placeId.Value)
+                    .CountAsync();
+                var categoriesCount = await _context.Categories
+                    .Where(c => c.Id != 0)
+                    .Where(c => !placeId.HasValue || c.PlaceId == placeId.Value)
+                    .CountAsync();
+                var systemAdmins = await _context.Users
+                    .Where(u => u.Role == UserRole.SystemAdmin)
+                    .CountAsync();
+                var cafeAdmins = await _context.Users
+                    .Where(u => u.Role == UserRole.CafeAdmin)
+                    .Where(u => !placeId.HasValue || u.PlaceId == placeId.Value)
+                    .CountAsync();
                 
                 var uploadedFiles = 0;
                 if (Directory.Exists(_uploadsPath))
@@ -116,9 +134,12 @@ namespace CafeMenuApi.Controllers
                 {
                     menuItems = menuItemsCount,
                     categories = categoriesCount,
-                    adminUsers = adminUsers,
+                    systemAdmins = systemAdmins,
+                    cafeAdmins = cafeAdmins,
                     uploadedFiles = uploadedFiles,
-                    databaseSize = await EstimateDatabaseSize()
+                    databaseSize = await EstimateDatabaseSize(placeId),
+                    placeScoped = placeId.HasValue,
+                    placeId
                 });
             }
             catch (Exception ex)
@@ -133,11 +154,13 @@ namespace CafeMenuApi.Controllers
         }
 
         [HttpPost("migrate-base64-images")]
-        public async Task<IActionResult> MigrateBase64Images()
+        public async Task<IActionResult> MigrateBase64Images([FromQuery] int? placeId = null)
         {
             try
             {
-                var menuItems = await _context.MenuItems.ToListAsync();
+                var menuItems = await _context.MenuItems
+                    .Where(m => !placeId.HasValue || m.PlaceId == placeId.Value)
+                    .ToListAsync();
                 var migratedCount = 0;
                 var errors = new List<string>();
 
@@ -198,7 +221,9 @@ namespace CafeMenuApi.Controllers
                     message = "Base64 images migration completed",
                     migratedCount = migratedCount,
                     totalItems = menuItems.Count,
-                    errors = errors
+                    errors = errors,
+                    placeScoped = placeId.HasValue,
+                    placeId
                 });
             }
             catch (Exception ex)
@@ -213,11 +238,13 @@ namespace CafeMenuApi.Controllers
         }
 
         [HttpGet("analyze-images")]
-        public async Task<IActionResult> AnalyzeImages()
+        public async Task<IActionResult> AnalyzeImages([FromQuery] int? placeId = null)
         {
             try
             {
-                var menuItems = await _context.MenuItems.ToListAsync();
+                var menuItems = await _context.MenuItems
+                    .Where(m => !placeId.HasValue || m.PlaceId == placeId.Value)
+                    .ToListAsync();
                 var base64Count = 0;
                 var urlCount = 0;
                 var emptyCount = 0;
@@ -302,7 +329,9 @@ namespace CafeMenuApi.Controllers
                     emptyImages = emptyCount,
                     estimatedTotalSize = FormatBytes(totalSize),
                     estimatedTotalSizeBytes = totalSize,
-                    itemsWithBase64 = base64Items
+                    itemsWithBase64 = base64Items,
+                    placeScoped = placeId.HasValue,
+                    placeId
                 });
             }
             catch (Exception ex)
@@ -363,14 +392,16 @@ namespace CafeMenuApi.Controllers
             return (long)(base64Length * 0.75); // Approximate original file size
         }
 
-        private async Task<string> EstimateDatabaseSize()
+        private async Task<string> EstimateDatabaseSize(int? placeId)
         {
             try
             {
                 var totalSize = 0L;
                 
                 // Estimate from menu items (mainly images)
-                var menuItems = await _context.MenuItems.ToListAsync();
+                var menuItems = await _context.MenuItems
+                    .Where(m => !placeId.HasValue || m.PlaceId == placeId.Value)
+                    .ToListAsync();
                 foreach (var item in menuItems)
                 {
                     if (!string.IsNullOrEmpty(item.Image))

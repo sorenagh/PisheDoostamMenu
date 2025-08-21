@@ -16,7 +16,11 @@ namespace CafeMenuApi.Models
         [StringLength(500)]
         public string Description { get; set; } = string.Empty;
         
-        // Navigation property
+        // Foreign key for Place
+        public int PlaceId { get; set; }
+        
+        // Navigation properties
+        public virtual Place Place { get; set; } = null!;
         public virtual ICollection<MenuItem> MenuItems { get; set; } = new List<MenuItem>();
     }
 } 

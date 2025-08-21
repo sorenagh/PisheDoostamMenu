@@ -4,6 +4,7 @@ using CafeMenuApi.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CafeMenuApi.Migrations
 {
     [DbContext(typeof(CafeMenuContext))]
-    partial class CafeMenuContextModelSnapshot : ModelSnapshot
+    [Migration("20250821125041_AddPlaceEntity")]
+    partial class AddPlaceEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,6 +24,53 @@ namespace CafeMenuApi.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("CafeMenuApi.Models.Admin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLoginAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("PlaceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlaceId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Admins");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Password = "admin123",
+                            PlaceId = 1,
+                            Username = "admin"
+                        });
+                });
 
             modelBuilder.Entity("CafeMenuApi.Models.Category", b =>
                 {
@@ -278,63 +328,15 @@ namespace CafeMenuApi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("CafeMenuApi.Models.User", b =>
+            modelBuilder.Entity("CafeMenuApi.Models.Admin", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                    b.HasOne("CafeMenuApi.Models.Place", "Place")
+                        .WithMany("Admins")
+                        .HasForeignKey("PlaceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastLoginAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Password")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("PlaceId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Username")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PlaceId");
-
-                    b.HasIndex("Username")
-                        .IsUnique();
-
-                    b.ToTable("Users");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Password = "SuperAdmin@2025!",
-                            Role = 1,
-                            Username = "superadmin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Password = "admin123",
-                            PlaceId = 1,
-                            Role = 2,
-                            Username = "admin"
-                        });
+                    b.Navigation("Place");
                 });
 
             modelBuilder.Entity("CafeMenuApi.Models.Category", b =>
@@ -367,16 +369,6 @@ namespace CafeMenuApi.Migrations
                     b.Navigation("Place");
                 });
 
-            modelBuilder.Entity("CafeMenuApi.Models.User", b =>
-                {
-                    b.HasOne("CafeMenuApi.Models.Place", "Place")
-                        .WithMany("Users")
-                        .HasForeignKey("PlaceId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Place");
-                });
-
             modelBuilder.Entity("CafeMenuApi.Models.Category", b =>
                 {
                     b.Navigation("MenuItems");
@@ -384,9 +376,9 @@ namespace CafeMenuApi.Migrations
 
             modelBuilder.Entity("CafeMenuApi.Models.Place", b =>
                 {
-                    b.Navigation("Categories");
+                    b.Navigation("Admins");
 
-                    b.Navigation("Users");
+                    b.Navigation("Categories");
                 });
 #pragma warning restore 612, 618
         }

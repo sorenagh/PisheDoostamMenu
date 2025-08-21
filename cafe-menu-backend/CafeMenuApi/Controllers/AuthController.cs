@@ -19,10 +19,11 @@ namespace CafeMenuApi.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AdminLoginResponseDto>> Login(AdminLoginDto loginDto)
         {
-            var admin = await _context.Admins
-                .FirstOrDefaultAsync(a => a.Username == loginDto.Username && a.Password == loginDto.Password);
+            var user = await _context.Users
+                .Include(u => u.Place)
+                .FirstOrDefaultAsync(u => u.Username == loginDto.Username && u.Password == loginDto.Password);
 
-            if (admin == null)
+            if (user == null)
             {
                 return Ok(new AdminLoginResponseDto
                 {
@@ -31,10 +32,10 @@ namespace CafeMenuApi.Controllers
                 });
             }
 
-            admin.LastLoginAt = DateTime.UtcNow;
+            user.LastLoginAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
-            var token = GenerateSimpleToken(admin.Id);
+            var token = GenerateSimpleToken(user.Id);
 
             return Ok(new AdminLoginResponseDto
             {
@@ -43,10 +44,26 @@ namespace CafeMenuApi.Controllers
                 Token = token,
                 Admin = new AdminDto
                 {
-                    Id = admin.Id,
-                    Username = admin.Username,
-                    CreatedAt = admin.CreatedAt,
-                    LastLoginAt = admin.LastLoginAt
+                    Id = user.Id,
+                    Username = user.Username,
+                    Role = user.Role.ToString(),
+                    CreatedAt = user.CreatedAt,
+                    LastLoginAt = user.LastLoginAt,
+                    PlaceId = user.PlaceId,
+                    Place = user.Place == null ? null : new PlaceDto
+                    {
+                        Id = user.Place.Id,
+                        Name = user.Place.Name,
+                        Description = user.Place.Description,
+                        Address = user.Place.Address,
+                        Phone = user.Place.Phone,
+                        Email = user.Place.Email,
+                        Logo = user.Place.Logo,
+                        CoverImage = user.Place.CoverImage,
+                        IsActive = user.Place.IsActive,
+                        CreatedAt = user.Place.CreatedAt,
+                        UpdatedAt = user.Place.UpdatedAt
+                    }
                 }
             });
         }
@@ -54,35 +71,54 @@ namespace CafeMenuApi.Controllers
         [HttpPost("verify")]
         public async Task<ActionResult<AdminDto>> VerifyToken([FromBody] string token)
         {
-            var adminId = ExtractAdminIdFromToken(token);
-            if (adminId == null)
+            var userId = ExtractUserIdFromToken(token);
+            if (userId == null)
             {
                 return Unauthorized();
             }
 
-            var admin = await _context.Admins.FindAsync(adminId);
-            if (admin == null)
+            var user = await _context.Users
+                .Include(u => u.Place)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
             {
                 return Unauthorized();
             }
 
             return Ok(new AdminDto
             {
-                Id = admin.Id,
-                Username = admin.Username,
-                CreatedAt = admin.CreatedAt,
-                LastLoginAt = admin.LastLoginAt
+                Id = user.Id,
+                Username = user.Username,
+                Role = user.Role.ToString(),
+                CreatedAt = user.CreatedAt,
+                LastLoginAt = user.LastLoginAt,
+                PlaceId = user.PlaceId,
+                Place = user.Place == null ? null : new PlaceDto
+                {
+                    Id = user.Place.Id,
+                    Name = user.Place.Name,
+                    Description = user.Place.Description,
+                    Address = user.Place.Address,
+                    Phone = user.Place.Phone,
+                    Email = user.Place.Email,
+                    Logo = user.Place.Logo,
+                    CoverImage = user.Place.CoverImage,
+                    IsActive = user.Place.IsActive,
+                    CreatedAt = user.Place.CreatedAt,
+                    UpdatedAt = user.Place.UpdatedAt
+                }
             });
         }
 
-        private string GenerateSimpleToken(int adminId)
+        private string GenerateSimpleToken(int userId)
         {
-            var tokenData = $"{adminId}:{DateTime.UtcNow:yyyy-MM-dd-HH-mm-ss}";
+            var tokenData = $"{userId}:{DateTime.UtcNow:yyyy-MM-dd-HH-mm-ss}";
             var tokenBytes = System.Text.Encoding.UTF8.GetBytes(tokenData);
             return Convert.ToBase64String(tokenBytes);
         }
 
-        private int? ExtractAdminIdFromToken(string token)
+        private int? ExtractUserIdFromToken(string token)
         {
             try
             {
@@ -90,9 +126,9 @@ namespace CafeMenuApi.Controllers
                 var tokenData = System.Text.Encoding.UTF8.GetString(tokenBytes);
                 var parts = tokenData.Split(':');
                 
-                if (parts.Length >= 2 && int.TryParse(parts[0], out int adminId))
+                if (parts.Length >= 2 && int.TryParse(parts[0], out int userId))
                 {
-                    return adminId;
+                    return userId;
                 }
                 return null;
             }

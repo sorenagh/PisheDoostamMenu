@@ -20,18 +20,42 @@ namespace CafeMenuApi.Controllers
         // GET: api/Categories
         [HttpGet]
         [ResponseCache(Duration = 600)] // Cache for 10 minutes
-        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories()
+        public async Task<ActionResult<IEnumerable<CategoryDto>>> GetCategories([FromQuery] int? placeId = null)
         {
-            var categories = await _context.Categories
+            var query = _context.Categories
                 .Include(c => c.MenuItems)
-                .AsNoTracking() // Optimize for read-only queries
+                .Include(c => c.Place)
+                .AsNoTracking(); // Optimize for read-only queries
+
+            // Filter by place if specified
+            if (placeId.HasValue)
+            {
+                query = query.Where(c => c.PlaceId == placeId.Value);
+            }
+
+            var categories = await query
                 .Select(c => new CategoryDto
                 {
                     Id = c.Id,
                     Name = c.Name,
                     Icon = c.Icon,
                     Description = c.Description,
-                    ItemCount = c.MenuItems.Count
+                    ItemCount = c.MenuItems.Count,
+                    PlaceId = c.PlaceId,
+                    Place = new PlaceDto
+                    {
+                        Id = c.Place.Id,
+                        Name = c.Place.Name,
+                        Description = c.Place.Description,
+                        Address = c.Place.Address,
+                        Phone = c.Place.Phone,
+                        Email = c.Place.Email,
+                        Logo = c.Place.Logo,
+                        CoverImage = c.Place.CoverImage,
+                        IsActive = c.Place.IsActive,
+                        CreatedAt = c.Place.CreatedAt,
+                        UpdatedAt = c.Place.UpdatedAt
+                    }
                 })
                 .ToListAsync();
 
@@ -41,12 +65,13 @@ namespace CafeMenuApi.Controllers
         // GET: api/Categories/5
         [HttpGet("{id}")]
         [ResponseCache(Duration = 600)] // Cache for 10 minutes
-        public async Task<ActionResult<CategoryDto>> GetCategory(int id)
+        public async Task<ActionResult<CategoryDto>> GetCategory(int id, [FromQuery] int? placeId = null)
         {
             var category = await _context.Categories
                 .Include(c => c.MenuItems)
+                .Include(c => c.Place)
                 .AsNoTracking() // Optimize for read-only queries
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(c => c.Id == id && (!placeId.HasValue || c.PlaceId == placeId.Value));
 
             if (category == null)
             {
@@ -59,7 +84,22 @@ namespace CafeMenuApi.Controllers
                 Name = category.Name,
                 Icon = category.Icon,
                 Description = category.Description,
-                ItemCount = category.MenuItems.Count
+                ItemCount = category.MenuItems.Count,
+                PlaceId = category.PlaceId,
+                Place = new PlaceDto
+                {
+                    Id = category.Place.Id,
+                    Name = category.Place.Name,
+                    Description = category.Place.Description,
+                    Address = category.Place.Address,
+                    Phone = category.Place.Phone,
+                    Email = category.Place.Email,
+                    Logo = category.Place.Logo,
+                    CoverImage = category.Place.CoverImage,
+                    IsActive = category.Place.IsActive,
+                    CreatedAt = category.Place.CreatedAt,
+                    UpdatedAt = category.Place.UpdatedAt
+                }
             };
 
             return Ok(categoryDto);
@@ -73,7 +113,8 @@ namespace CafeMenuApi.Controllers
             {
                 Name = createDto.Name,
                 Icon = createDto.Icon,
-                Description = createDto.Description
+                Description = createDto.Description,
+                PlaceId = createDto.PlaceId
             };
 
             _context.Categories.Add(category);
@@ -85,7 +126,8 @@ namespace CafeMenuApi.Controllers
                 Name = category.Name,
                 Icon = category.Icon,
                 Description = category.Description,
-                ItemCount = 0
+                ItemCount = 0,
+                PlaceId = category.PlaceId
             };
 
             return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, categoryDto);
@@ -104,6 +146,7 @@ namespace CafeMenuApi.Controllers
             category.Name = updateDto.Name;
             category.Icon = updateDto.Icon;
             category.Description = updateDto.Description;
+            category.PlaceId = updateDto.PlaceId;
 
             try
             {

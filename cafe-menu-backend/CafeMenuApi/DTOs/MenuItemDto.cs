@@ -9,6 +9,8 @@ namespace CafeMenuApi.DTOs
         public string Description { get; set; } = string.Empty;
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
+        public int PlaceId { get; set; }
+        public PlaceDto? Place { get; set; }
         public List<string> Photos { get; set; } = new List<string>();
     }
     
@@ -19,6 +21,7 @@ namespace CafeMenuApi.DTOs
         public string Image { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int CategoryId { get; set; }
+        public int PlaceId { get; set; }
         public List<string> Photos { get; set; } = new List<string>();
     }
     
@@ -29,6 +32,7 @@ namespace CafeMenuApi.DTOs
         public string Image { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int CategoryId { get; set; }
+        public int PlaceId { get; set; }
         public List<string> Photos { get; set; } = new List<string>();
     }
 } 
